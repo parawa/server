@@ -4,28 +4,6 @@ const cors = require("cors");
 const dbConnection = require("./database");
 const port = 3001;
 
-function verifyToken(req, res, next) {
-  if (req.headers.authorization) {
-      const token = req.headers.authorization.split(' ')[1]
-      // console.log(token)
-      if (!token) {
-          // console.log('ไม่มีโทเค่นส่งมาด้วย')
-          return res.json({ status: 'Error', msg: 'ไม่มีโทเค่นส่งมาด้วย' })
-      }
-      jwt.verify(token, secret, (err, decoded) => {
-          if (err) {
-              // console.log('โทเค่นไม่ถูกต้อง')
-              return res.json({ status: 'Error', msg: 'โทเค่นไม่ถูกต้อง' })
-          }
-          req.decoded = decoded;
-          next()
-      })
-  } else {
-      // console.log('ไม่มีโทเค่นส่งมาด้วย')
-      res.json({ status: 'Error', msg: 'ไม่มีโทเค่นส่งมาด้วย' })
-  }
-}
-
 app.use(cors());
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(express.json({ limit: "50mb" }));
@@ -78,23 +56,27 @@ app.post("/filesinsert", (req, res) => {
   }
 });
 
-app.post('/search', verifyToken, (req, res) =>{
-  const { parcelCode } = req.body;
-  if (parcelCode){
-    dbConnection.execute("SELECT * FROM `e_property_folder` WHERE `parcel_Code` = ?",[parcelCode])
-    .then(([data]) => {
-      // console.log(data)
-      res.json({ data: data })
-  }).catch((err) => {
-      res.json({ status: 'Error', msg: 'ดำเนินการดึงข้อมูลไม่สำเร็จ' })
-  })
+app.post("/search", (req, res) => {
+  const { parcelCodeSearch } = req.body;
+  if (parcelCodeSearch !== undefined) {
+    dbConnection
+      .execute("SELECT * FROM `file` WHERE `parcel_Code` = ?", [
+        parcelCodeSearch,
+      ])
+      .then(([data]) => {
+        // console.log(data)
+        res.json({ status: "OK", data: data });
+      })
+      .catch((err) => {
+        res.json({ status: "Error", msg: "ดำเนินการดึงข้อมูลไม่สำเร็จ" });
+      });
   } else {
     res.json({
-        status: 'error',
-        msg: 'ไม่พบ Survey ID'
-    })
-}
-})
+      status: "error",
+      msg: "ไม่พบ Survey ID",
+    });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
