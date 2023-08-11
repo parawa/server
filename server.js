@@ -4,6 +4,8 @@ const cors = require("cors");
 const dbConnection = require("./database");
 const port = 3001;
 
+const multer = require('multer')
+
 app.use(cors());
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(express.json({ limit: "50mb" }));
@@ -76,6 +78,9 @@ app.post("/search", (req, res) => {
       msg: "ไม่พบ Survey ID",
     });
   }
+});
+app.post("/upload", (req, res) => {
+  
 });
 
 app.listen(port, () => {
